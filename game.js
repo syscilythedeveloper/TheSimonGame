@@ -1,39 +1,69 @@
-var buttonColors = ["red", "green", "blue", "yellow"];
+var buttonColours = ["red", "blue", "green", "yellow"];
+
 var gamePattern = [];
 var userClickedPattern = [];
+
 var started = false;
 var level = 0;
 
-//start Game
-
 $(document).keypress(function () {
   if (!started) {
-    nextSequence(buttonColors);
-    $("h1").text("Level " + level);
+    $("#level-title").text("Level " + level);
+    nextSequence();
     started = true;
   }
 });
 
-function nextSequence(arr) {
-  var randomChosenColor = arr[Math.floor(Math.random() * arr.length)];
-  gamePattern.push(randomChosenColor);
-  var colorID = $("#" + randomChosenColor);
-  colorID.fadeIn(100).fadeOut(100).fadeIn(100);
+$(".btn").click(function () {
+  var userChosenColour = $(this).attr("id");
+  userClickedPattern.push(userChosenColour);
 
-  playSound(randomChosenColor);
-  level++;
-  $("h1").text("Level " + level);
+  playSound(userChosenColour);
+  animatePress(userChosenColour);
 
-  return randomChosenColor;
+  checkAnswer(userClickedPattern.length - 1);
+});
+
+function checkAnswer(currentLevel) {
+  if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+    console.log("success");
+
+    if (userClickedPattern.length === gamePattern.length) {
+      setTimeout(function () {
+        nextSequence();
+      }, 1000);
+    }
+  } else {
+    console.log("wrong");
+    var wrongAnswer = new Audio("sounds/wrong.mp3");
+    wrongAnswer.play();
+
+    $("body").addClass("game-over");
+
+    setTimeout(function () {
+      $("body").removeClass("game-over");
+    }, 200);
+
+    $("#level-title").text("Game Over, Press Any Key to Restart");
+  }
 }
 
-$(".btn").click(function () {
-  var userChosenColor = $(this).attr("id");
-  userClickedPattern.push(userChosenColor);
+function nextSequence() {
+  userClickedPattern = [];
 
-  playSound(userChosenColor);
-  animatePress(userChosenColor);
-});
+  level++;
+  $("#level-title").text("Level " + level);
+
+  var randomNumber = Math.floor(Math.random() * 4);
+  var randomChosenColour = buttonColours[randomNumber];
+  gamePattern.push(randomChosenColour);
+
+  $("#" + randomChosenColour)
+    .fadeIn(100)
+    .fadeOut(100)
+    .fadeIn(100);
+  playSound(randomChosenColour);
+}
 
 function playSound(name) {
   var audio = new Audio("sounds/" + name + ".mp3");
@@ -42,7 +72,6 @@ function playSound(name) {
 
 function animatePress(currentColor) {
   $("#" + currentColor).addClass("pressed");
-
   setTimeout(function () {
     $("#" + currentColor).removeClass("pressed");
   }, 100);
